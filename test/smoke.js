@@ -74,7 +74,9 @@ function checkReferentialIntegrity(dataset) {
   const orgIds = new Set(dataset.orgs.map((o) => o.sourcedId));
   const schoolIds = new Set(dataset.orgs.filter((o) => o.type === 'school').map((o) => o.sourcedId));
   const courseIds = new Set(dataset.courses.map((c) => c.sourcedId));
+  const classById = new Map(dataset.classes.map((c) => [c.sourcedId, c]));
   const classIds = new Set(dataset.classes.map((c) => c.sourcedId));
+  const userById = new Map(dataset.users.map((u) => [u.sourcedId, u]));
   const userIds = new Set(dataset.users.map((u) => u.sourcedId));
   const sessionIds = new Set(dataset.academicSessions.map((s) => s.sourcedId));
 
@@ -94,12 +96,26 @@ function checkReferentialIntegrity(dataset) {
     assert(classIds.has(e.classSourcedId), 'enrollment.classSourcedId dangling');
     assert(schoolIds.has(e.schoolSourcedId), 'enrollment.schoolSourcedId dangling');
     assert(userIds.has(e.userSourcedId), 'enrollment.userSourcedId dangling');
+    // The enrollment's school must be the school the class actually belongs to,
+    // and the enrolled user's org must be that same school. These catch drift
+    // between the two references that a plain existence check would miss.
+    const cls = classById.get(e.classSourcedId);
+    assert.strictEqual(e.schoolSourcedId, cls.schoolSourcedId, 'enrollment.school != class.school');
+    const user = userById.get(e.userSourcedId);
+    assert.strictEqual(user.orgSourcedIds, e.schoolSourcedId, 'enrolled user.org != enrollment.school');
   }
   const studentIds = new Set(dataset.users.filter((u) => u.role === 'student').map((u) => u.sourcedId));
   for (const d of dataset.demographics) {
     assert(studentIds.has(d.sourcedId), 'demographic references non-student');
   }
-  console.log('  referential integrity: all foreign keys resolve');
+  // Every student should land in at least one class.
+  const enrolledStudents = new Set(
+    dataset.enrollments.filter((e) => e.role === 'student').map((e) => e.userSourcedId)
+  );
+  for (const id of studentIds) {
+    assert(enrolledStudents.has(id), 'student has no class enrollment');
+  }
+  console.log('  referential integrity: FKs resolve, cross-refs consistent, all students enrolled');
 }
 
 function checkParsedCounts(files, dataset) {
