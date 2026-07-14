@@ -1,0 +1,14 @@
+# Dependencies (there are none, but just in case)
+node_modules/
+
+# Generated rosters
+oneroster-out/
+*.zip
+
+# Local secrets / env
+.env
+*.env
+
+# OS / editor
+.DS_Store
+*.log

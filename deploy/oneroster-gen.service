@@ -1,0 +1,35 @@
+# systemd unit for the DigitalOcean droplet.
+# Install:
+#   sudo useradd --system --no-create-home oneroster   # once
+#   sudo mkdir -p /opt/oneroster-gen && sudo rsync -a ./ /opt/oneroster-gen/
+#   sudo chown -R oneroster:oneroster /opt/oneroster-gen
+#   sudo cp deploy/oneroster-gen.service /etc/systemd/system/
+# Set the shared secret in a file that is NOT committed to the repo:
+#   printf 'ONEROSTER_TOKEN=%s\n' "$(openssl rand -hex 24)" | sudo tee /etc/oneroster-gen.env
+#   sudo chmod 600 /etc/oneroster-gen.env
+#   sudo systemctl daemon-reload && sudo systemctl enable --now oneroster-gen
+# Logs: journalctl -u oneroster-gen -f
+[Unit]
+Description=OneRoster Sample Generator
+After=network.target
+
+[Service]
+Type=simple
+User=oneroster
+WorkingDirectory=/opt/oneroster-gen
+# Bind to loopback when nginx sits in front; use 0.0.0.0 only behind a DO firewall.
+Environment=HOST=127.0.0.1
+Environment=PORT=4400
+# Holds ONEROSTER_TOKEN. The leading - means the service still starts if absent
+# (unauthenticated, with a warning), so a missing secret fails loud, not silent.
+EnvironmentFile=-/etc/oneroster-gen.env
+ExecStart=/usr/bin/node src/server.js
+Restart=on-failure
+RestartSec=2
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

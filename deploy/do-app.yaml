@@ -1,0 +1,19 @@
+# Optional: run on DigitalOcean App Platform straight from the GitHub repo
+# instead of the droplet. Gives you HTTPS and a URL with no server to manage.
+#   doctl apps create --spec deploy/do-app.yaml
+# App Platform injects PORT (8080); the server reads it automatically.
+name: oneroster-gen
+region: nyc
+services:
+  - name: web
+    environment_slug: node-js
+    github:
+      repo: YOUR_GH_USERNAME/oneroster-sample-generator
+      branch: main
+      deploy_on_push: true
+    run_command: node src/server.js
+    instance_size_slug: basic-xxs
+    instance_count: 1
+    http_port: 8080
+    routes:
+      - path: /

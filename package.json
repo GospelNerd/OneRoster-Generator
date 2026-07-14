@@ -1,0 +1,19 @@
+{
+  "name": "oneroster-sample-generator",
+  "version": "0.1.0",
+  "description": "Generates fake OneRoster 1.1 CSV rosters for testing, via CLI or a small HTTP API.",
+  "main": "src/generator.js",
+  "bin": {
+    "oneroster-gen": "src/cli.js"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "generate": "node src/cli.js",
+    "test": "node test/smoke.js"
+  },
+  "engines": {
+    "node": ">=16"
+  },
+  "license": "MIT",
+  "private": true
+}
