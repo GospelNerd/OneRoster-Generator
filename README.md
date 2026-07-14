@@ -122,9 +122,10 @@ DO firewall or nginx basic auth if you want more than one layer.
 
 ## Deploy
 
-The app has no auth of its own, so keep it off the open internet: bind to
-loopback behind a reverse proxy, or restrict the port with a DigitalOcean Cloud
-Firewall to QA/VPN addresses.
+The `/generate` endpoint takes a shared-secret token (see Auth), but that is a
+single secret with no rate limiting, so for anything beyond internal QA add a
+network layer too: bind to loopback behind a reverse proxy, or restrict the port
+with a DigitalOcean Cloud Firewall to QA/VPN addresses.
 
 Droplet (systemd):
 
